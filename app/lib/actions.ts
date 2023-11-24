@@ -1,6 +1,7 @@
 'use server';
 
 import { z } from 'zod';
+import { signIn } from '@/auth';
 import { sql } from '@vercel/postgres';
 import { revalidatePath } from 'next/cache';
 import { redirect } from 'next/navigation';
@@ -111,4 +112,18 @@ export async function createInvoice(prevState: State, formData: FormData) {
   // Revalidate the cache for the invoices page and redirect the user.
   revalidatePath('/dashboard/invoices');
   redirect('/dashboard/invoices');
+}
+
+export async function authenticate(
+  prevState: string | undefined,
+  formData: FormData,
+) {
+  try {
+    await signIn('credentials', Object.fromEntries(formData));
+  } catch (error) {
+    if ((error as Error).message.includes('CredentialsSignin')) {
+      return 'CredentialsSignin';
+    }
+    throw error;
+  }
 }
